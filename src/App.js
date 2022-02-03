@@ -4,56 +4,43 @@ import { uuid } from "uuidv4";
 
 import "./styles.css";
 
-
 function App() {
 
-  const [repositories, setRepositories]  = useState([]);
+  const [repositories, setRepositories] = useState([]);
 
   useEffect(() => {
-    api.get('/repositories', (request,response) => {
-      const { title,id,owner} = request.body;
-
-      setRepositories([...repositories,
-      {
-        title,
-        id,
-        owner
-      },])
+    api.get('repositories').then(response => {
+      setRepositories(response.data);
     });
   }, []);
-  console.log(repositories)
 
   async function handleAddRepository() {
     
-    
     const response = await api.post('repositories', {
+      id: uuid(),
       title: `novo projeto ${uuid()}`,
       owner: 'ABC'
     });
 
 
-
-    setRepositories([...repositories, `novo projeto ${uuid()}`]);
+    setRepositories([...repositories, response.data]);
     console.log(repositories);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
-  }
+    await api.delete(`repositories/${id}`);
+
+    setRepositories(repositories.filter(repository => repository.id !== id))
+};
 
   return (
     <>
       <div>
         <ul data-testid="repository-list">
-          {repositories.map(repository => <li key={repository.id}>{repository.title}</li>)}
+          {repositories.map(repository => <li key={repository.id}>{repository.title}<button onClick={() => handleRemoveRepository(repository.id)}>Remover</button></li>)}
         </ul>
       </div>
       <div>
-      <ul data-testid="repository-list">
-          <li>
-            <button onClick={() => handleRemoveRepository(1)}>Remover</button>
-          </li>
-        </ul>
         <button onClick={handleAddRepository}>Adicionar</button>
       </div>
     </>
